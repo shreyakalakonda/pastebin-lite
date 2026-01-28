@@ -9,7 +9,7 @@ async function getPaste(id: string) {
 }
 
 export default async function PastePage({ params }: { params: { id: string } }) {
-  const {id} = await params;
+  const {id} = params;
   const data = await getPaste(id);
 
   if (!data) return <h1>Paste not found</h1>;
