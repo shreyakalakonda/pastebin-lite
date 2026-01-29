@@ -38,3 +38,16 @@ https://github.com/shreyakalakonda/pastebin-lite.git
 
 6. Open browser:
    http://localhost:3000
+
+
+Persistence Layer:
+
+This application uses Upstash Redis (Vercel KV) as its persistence layer.
+
+Why Upstash Redis?
+
+-Serverless-friendly
+-Data persists across requests
+-Works reliably with Vercel deployments
+-Suitable for automated grading environments
+-All paste data (content, expiry time, view count) is stored in Redis.
