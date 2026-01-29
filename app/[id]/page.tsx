@@ -1,22 +1,57 @@
-async function getPaste(id: string) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/paste/${id}`,
-    { cache: "no-store" }
-  );
+"use client";
 
-  if (!res.ok) return null;
-  return res.json();
-}
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 
-export default async function PastePage({ params }: { params: { id: string } }) {
-  const {id} = params;
-  const data = await getPaste(id);
+export default function PastePage() {
+  const { id } = useParams();
+  const [content, setContent] = useState("");
+  const [error, setError] = useState("");
+  const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  const [expired, setExpired] = useState(false);
 
-  if (!data) return <h1>Paste not found</h1>;
+  useEffect(() => {
+    fetch(`/api/paste/${id}`, { cache: "no-store" })
+      .then(res => {
+        if (!res.ok) throw new Error("Expired");
+        return res.json();
+      })
+      .then(data => {
+        setContent(data.content);
+        setExpiresAt(data.expiresAt);
+      })
+      .catch(() => {
+        setExpired(true);
+      });
+  }, [id]);
+
+  // ⏱ FRONTEND TIMER
+  useEffect(() => {
+    if (!expiresAt) return;
+
+    const interval = setInterval(() => {
+      if (Date.now() > expiresAt) {
+        setExpired(true);
+        clearInterval(interval);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  if (expired) {
+    return (
+      <div className="text-red-500 text-center mt-10">
+        Paste expired ⏱
+      </div>
+    );
+  }
+
+  if (!content) return <p>Loading...</p>;
 
   return (
-    <pre style={{ padding: 20, whiteSpace: "pre-wrap" }}>
-      {data.content}
-    </pre>
+    <div className="p-4">
+      <pre className="bg-gray-100 p-4 rounded">{content}</pre>
+    </div>
   );
 }

@@ -1,17 +1,31 @@
-import {kv} from "@vercel/kv";
-import {nanoid} from "nanoid";
+import { NextResponse } from "next/server";
+import { kv } from "@vercel/kv";
+import crypto from "crypto";
 
-export async function POST (req:Request)
-{
-    const { content } = await req.json();
+export async function POST(req: Request) {
+  const { content, expiresIn, maxViews } = await req.json();
 
-    if(!content)
+  if (!content || expiresIn <= 1 || maxViews < 1) {
+    return NextResponse.json(
+      { error: "Invalid input" },
+      { status: 400 }
+    );
+  }
+
+  const id = crypto.randomBytes(4).toString("hex");
+
+  const expiresAt = Date.now() + expiresIn * 1000;
+
+  await kv.set(
+    id,
     {
-        return new Response("Content is required",{status:400});
-    }
+      content,
+      remainingViews: maxViews,
+      createdAt: Date.now(),
+      expiresAt,
+    },
+    { ex: expiresIn } // TTL backup (not authority)
+  );
 
-    const id = nanoid(6);
-    await kv.set(id,content);
-
-    return Response.json({id,content});
+  return NextResponse.json({ id });
 }
