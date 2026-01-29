@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
+
 export default function PastePage() {
   const { id } = useParams();
   const [content, setContent] = useState("");
@@ -25,7 +26,7 @@ export default function PastePage() {
       });
   }, [id]);
 
-  // ⏱ FRONTEND TIMER
+  // FRONTEND TIMER
   useEffect(() => {
     if (!expiresAt) return;
 
@@ -38,6 +39,7 @@ export default function PastePage() {
 
     return () => clearInterval(interval);
   }, [expiresAt]);
+  
 
   if (expired) {
     return (

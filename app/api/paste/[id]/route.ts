@@ -1,8 +1,9 @@
 import { kv } from "@vercel/kv";
 import { NextResponse } from "next/server";
+import { getNowMs } from "@/lib/now";
 
 export async function GET(
-  _req: Request,
+   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -21,14 +22,14 @@ export async function GET(
     );
   }
 
-  const now = Date.now();
+  const now = getNowMs(req.headers);
 
   // ⏱ Time-based expiry
-  if (now > data.expiresAt) {
+  if (now && data.expiresAt > data.expiresAt) {
     await kv.del(id);
     return NextResponse.json(
       { error: "Paste expired (time limit reached)" },
-      { status: 410 }
+      { status: 404 }
     );
   }
 
